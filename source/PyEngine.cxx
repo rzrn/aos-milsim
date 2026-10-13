@@ -378,7 +378,7 @@ static PyObject * PyEngineApply(PyEngine * self, PyObject * dict) {
 
         unsigned int v = (static_cast<unsigned int>(color[0]) << 0)
                        | (static_cast<unsigned int>(color[1]) << 8)
-                       | (static_cast<unsigned int>(color[1]) << 16);
+                       | (static_cast<unsigned int>(color[2]) << 16);
 
         PyOwnedRef i(PyEncode<unsigned int>(v & 0xFFFFFF));
         self->ref->vxlData.set(xy * MAP_Z + z, PyDict_GetItem(dict, i));
