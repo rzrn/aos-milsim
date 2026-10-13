@@ -1,6 +1,6 @@
 /*
     Copyright © 2011–2012 Mathias Kaerlev
-    Copyright © 2024 rzrn
+    Copyright © 2024, 2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,9 @@ int deleteQueuePop() {
     return retval;
 }
 
-int traverseNode(int x, int y, int z, MapData * M, int destroy) {
+int traverseNode(int x, int y, int z, MapBuf * M) {
+    // TODO: consider replacing this with `map_cull` from ‘libpvx2’
+
     constexpr size_t nodeReserveSize = 250000;
 
     static std::vector<Vector3i> queue;
@@ -70,7 +72,7 @@ int traverseNode(int x, int y, int z, MapData * M, int destroy) {
 
         queue.pop_back();
 
-        int i = get_pos(x, y, z);
+        int i = map_to_xy(x, y) * MAP_Z + z;
 
         auto [_, inserted] = marked.insert(i);
 
@@ -87,9 +89,10 @@ int traverseNode(int x, int y, int z, MapData * M, int destroy) {
     onDeleteMutex.lock();
 
     // destroy the node’s path!
-    if (destroy) for (auto i : marked) {
-        M->geometry[i] = 0;
-        M->colors.erase(i);
+    for (auto i : marked) {
+        int xy = i / MAP_Z, z = i % MAP_Z;
+
+        map_destroy_xy(M, xy, z);
         onDeleteQueue.push(i);
     }
 

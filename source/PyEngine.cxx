@@ -310,7 +310,7 @@ static PyObject * PyEngineClearMeth(PyEngine * self, PyObject *) {
     self->ref->clear();
 
     PyOwnedRef M(self->ref->protocol, "map"); RETZIFZ(M);
-    RETZIFZ(self->ref->map = mapDataRef(M));
+    RETZIFZ(self->ref->map = mapBufRef(M));
 
     Py_RETURN_NONE;
 }
@@ -369,9 +369,19 @@ static PyObject * PyEngineApply(PyEngine * self, PyObject * dict) {
         return nullptr;
     }
 
-    for (auto & [k, v] : self->ref->map->colors) {
+    // TODO: we have to do something about this
+    for (long xy = 0; xy < MAP_XY; xy++) for (int z = 0; z < MAP_Z; z++) {
+        if (!map_is_solid_xy(self->ref->map, xy, z))
+            continue;
+
+        unsigned char * color = map_get_color_xy(self->ref->map, xy, z);
+
+        unsigned int v = (static_cast<unsigned int>(color[0]) << 0)
+                       | (static_cast<unsigned int>(color[1]) << 8)
+                       | (static_cast<unsigned int>(color[1]) << 16);
+
         PyOwnedRef i(PyEncode<unsigned int>(v & 0xFFFFFF));
-        self->ref->vxlData.set(k, PyDict_GetItem(dict, i));
+        self->ref->vxlData.set(xy * MAP_Z + z, PyDict_GetItem(dict, i));
     }
 
     Py_RETURN_NONE;

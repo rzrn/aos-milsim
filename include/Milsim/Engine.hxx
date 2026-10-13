@@ -33,7 +33,7 @@
 #include <Python.hxx>
 
 #include <common_c.h>
-#include <vxl_c.h>
+#include <pvx2/map.h>
 
 #include <engine.h>
 
@@ -170,12 +170,13 @@ public:
     { return get(R.x, R.y, R.z); }
 
     inline Voxel & set(int x, int y, int z, PyObject * o)
-    { return set(get_pos(x, y, z), o); }
+    { return set(map_to_xy(x, y) * MAP_Z + z, o); }
 
     inline Voxel & set(const Vector3i & R, PyObject * o)
-    { return set(get_pos(R.x, R.y, R.z), o); }
+    { return set(map_to_xy(R.x, R.y) * MAP_Z + R.z, o); }
 
-    inline void erase(int x, int y, int z) { data.erase(get_pos(x, y, z)); }
+    inline void erase(int x, int y, int z)
+    { data.erase(map_to_xy(x, y) * MAP_Z + z); }
 
     inline void clear() { data.clear(); defaultMaterial.retain(nullptr); waterMaterial().retain(nullptr); }
 
@@ -189,7 +190,7 @@ public:
 struct Engine {
 public:
     PyOwnedRef protocol;
-    MapData * map;
+    MapBuf * map;
 
     VoxelData vxlData;
     ObjectQueue objects;
@@ -226,11 +227,11 @@ public:
     { srand(time(NULL)); players.reserve(32); }
 
     inline bool indestructible(int x, int y, int z)
-    { return 62 <= z || !get_solid(x, y, z, map); }
+    { return 62 <= z || !map_is_solid(map, x, y, z); }
 
     inline bool unstable(int x₀, int y₀, int z₀) {
         for (int z = z₀ + 1; z < 62; z++) {
-            if (!get_solid(x₀, y₀, z, map))
+            if (!map_is_solid(map, x₀, y₀, z))
                 return true;
 
             if (!vxlData.get(x₀, y₀, z).material()->crumbly)
@@ -241,8 +242,10 @@ public:
     }
 
     inline bool solid(const Vector3i & R) {
-        return is_valid_position(R.x, R.y, R.z)
-            && get_solid(R.x, R.y, R.z, map);
+        return 0 <= R.x && R.x < MAP_X
+            && 0 <= R.y && R.y < MAP_Y
+            && 0 <= R.z && R.z < MAP_Z
+            && map_is_solid(map, R.x, R.y, R.z);
     }
 
     inline double density()                     const { return _density;                     }

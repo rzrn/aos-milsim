@@ -38,7 +38,8 @@ template<typename T> inline Vector3<T> reflect(const Vector3<T> & v, const Vecto
 { return v - n * (2 * (v, n)); }
 
 Voxel & VoxelData::set(int i, PyObject * o) {
-    int x, y, z; get_xyz(i, &x, &y, &z);
+    int z = i % MAP_Z;
+
     if (63 <= z) return water; // ignore z = 63
 
     auto d = z < 62 ? 1.0 : std::numeric_limits<double>::infinity();
@@ -52,7 +53,7 @@ Voxel & VoxelData::set(int i, PyObject * o) {
 Voxel & VoxelData::get(int x, int y, int z) {
     if (63 <= z) return water;
 
-    auto i = get_pos(x, y, z); auto iter = data.find(i);
+    auto i = map_to_xy(x, y) * MAP_Z + z; auto iter = data.find(i);
     return iter == data.end() ? set(i, defaultMaterial) : iter->second;
 }
 
@@ -329,7 +330,9 @@ void Engine::next(double t1, const double t2, ObjectIterator & it) {
 
     auto P = t2 - o.timestamp() <= 10;
     auto Q = 1.0 <= o.velocity.abs();
-    auto R = is_valid_position(o.position.x, o.position.y, o.position.z);
+    auto R = 0 <= o.position.x && o.position.x < MAP_X
+          && 0 <= o.position.y && o.position.y < MAP_Y
+          && 0 <= o.position.z && o.position.z < MAP_Z;
     auto S = o.valid();
 
     //if (!P) printf("%ld: time out\n", o.index());

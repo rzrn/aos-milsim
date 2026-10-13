@@ -1,7 +1,7 @@
 #pragma once
 
 /*
-    Copyright © 2024 rzrn
+    Copyright © 2024, 2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -19,20 +19,20 @@
 
 #include <vector>
 
-#include <vxl_c.h>
+#include <pvx2/map.h>
 
 #include <Milsim/Vector.hxx>
 
-int traverseNode(int x, int y, int z, MapData *, int destroy);
+int traverseNode(int x, int y, int z, MapBuf *);
 
 void deleteQueueClear();
 int deleteQueuePop();
 
-inline void visit(std::vector<Vector3i> & out, int x, int y, int z, MapData * M) {
+inline void visit(std::vector<Vector3i> & out, int x, int y, int z, MapBuf * M) {
     if (x < 0 || 512 <= x || y < 0 || 512 <= y || z < 0 || 64 <= z)
         return;
 
-    if (!M->geometry[get_pos(x, y, z)])
+    if (!map_is_solid(M, x, y, z))
         return;
 
     out.emplace_back(x, y, z);

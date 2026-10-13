@@ -19,7 +19,7 @@ from libcpp.pair cimport pair
 from libc.math cimport floor
 
 from pyspades.common cimport Vector, Vertex3
-from pyspades.vxl cimport VXLData, MapData
+from pyspades.vxl cimport VXLData, MapBuf
 from pyspades.common import Vertex3
 
 from pyspades.world cimport Character
@@ -65,10 +65,10 @@ def igamma(y):
 def shapeScaleWeibull(p, x0, μ):
     return c_shapeScaleWeibull[double](p, x0, μ)
 
-cdef public MapData * mapDataRef(object o):
+cdef public MapBuf * mapBufRef(object o):
     assert isinstance(o, VXLData)
 
-    return (<VXLData> o).map
+    return (<VXLData> o).mapbuf
 
 cdef public Vector * vectorRef(object o):
     assert isinstance(o, Vertex3)
