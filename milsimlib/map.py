@@ -120,6 +120,9 @@ class MapInfo:
             "name “{}” is not defined in the map “{}”".format(attr, self.name)
         )
 
+    def clear(self):
+        self.__dict__.clear()
+
 def check_map(map_name, dirname):
     rot_info = RotationInfo(map_name)
 
